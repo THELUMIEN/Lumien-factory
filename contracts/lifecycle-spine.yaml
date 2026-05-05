@@ -1,0 +1,192 @@
+version: 1
+profile: lumien-unified-lifecycle-spine-v1
+status: canonical
+schema: registry/unified/artifact-schema.yaml
+spine_doc: protocol/canon/unified-system-architecture-v1.md
+
+# LUMIEN 자산이 따르는 단일 라이프사이클.
+# 모든 폴더는 이 라이프사이클의 한 phase에 매핑된다.
+# 폴더 매핑은 registry/unified/folder-binding.yaml 참조.
+
+phases:
+  - id: input
+    label: "입력 격리"
+    folders: [sources/]
+    purpose: "외부 자료를 정제 전 단계로 받음"
+    next: [processing, commitment, memory]
+
+  - id: processing
+    label: "후보 검토"
+    folders: [ideas/, memory/visions/]
+    purpose: "실행 후보 아이디어 검토 / 비전 보존"
+    next: [commitment, terminal]
+
+  - id: commitment
+    label: "확정 판단"
+    folders: [decisions/]
+    purpose: "시점·근거 고정된 판단"
+    next: [execution, control]   # control: canon 승격 대상 결정
+
+  - id: execution
+    label: "실행"
+    folders: [tasks/]
+    purpose: "Builder 1회 실행 단위"
+    next: [output_internal, output_external, memory, terminal]
+
+  - id: output_internal
+    label: "내부 빌드"
+    folders: [projects/]
+    purpose: "내부 레퍼런스 / 실험"
+    next: [output_external, terminal]
+
+  - id: output_external
+    label: "외부 배포"
+    folders: [products/]
+    purpose: "L7 배포 대상"
+    next: [memory, terminal]
+
+  - id: memory
+    label: "장기 기억"
+    folders: [memory/roots/, memory/identity/, memory/visions/, memory/operations/]
+    purpose: "세션 간 보존되어야 하는 맥락"
+    next: [control]              # canon 승격 후보 표시
+
+  - id: control
+    label: "제어 (규칙/매니페스트/템플릿)"
+    folders: [protocol/, registry/, templates/]
+    purpose: "라이프사이클 자체를 정의/강제"
+    next: []
+
+  - id: cross_cutting
+    label: "시간축 로그"
+    folders: [journey/]
+    purpose: "시간순 작업 일지 (모든 phase 참조 가능)"
+    next: [memory]
+
+  - id: terminal
+    label: "폐기/아카이브"
+    folders: [archive/]
+    purpose: "history 보존된 종료 상태"
+    next: []
+
+# 각 자산의 lifecycle_state.
+# state는 phase 안에서의 진행 단계.
+states:
+  source:
+    sequence: [raw, extracted, normalized, indexed, archived]
+  idea:
+    sequence: [proposed, parked, promoted, dropped, archived]
+  decision:
+    sequence: [draft, accepted, superseded, archived]
+  task:
+    sequence: [inbox, active, blocked, done, dropped, archived]
+  project:
+    sequence: [seed, active, frozen, archived]
+  product:
+    sequence: [charter_only, build_ready, deployed, hold, archived]
+  memory_root:
+    sequence: [active, archived]      # archive는 폐기 아닌 보존 이전
+  memory_identity:
+    sequence: [active, superseded]
+  memory_vision:
+    sequence: [active, promoted, archived]
+  memory_operation:
+    sequence: [active, archived]
+  protocol_canon:
+    sequence: [draft, candidate, canonical, deprecated]
+  protocol_charter:
+    sequence: [draft, accepted, retired]
+  protocol_kernel:
+    sequence: [draft, canonical, deprecated]
+  protocol_grammar:
+    sequence: [draft, canonical, deprecated]
+  protocol_schema:
+    sequence: [draft, canonical, deprecated]
+  protocol_codex:
+    sequence: [draft, canonical, deprecated]
+  protocol_compiler:
+    sequence: [draft, canonical, deprecated]
+  protocol_bridge:
+    sequence: [draft, canonical, deprecated]
+  protocol_domain:
+    sequence: [draft, canonical, deprecated]
+  template:
+    sequence: [draft, active, deprecated]
+  registry_index:
+    sequence: [draft, active, deprecated]
+  journey_entry:
+    sequence: [recorded]
+  archive_entry:
+    sequence: [archived]
+
+# 자산 사이의 허용 transition (parent → child type).
+# 매니페스트 검증 시 이 표를 따른다.
+transitions:
+  - from: source
+    to: [idea, decision, task, registry_index, archive_entry]
+    note: "raw → 후보/판단/실행/색인/폐기"
+
+  - from: idea
+    to: [decision, archive_entry]
+    note: "아이디어는 결정으로만 승격 가능 (또는 폐기)"
+
+  - from: memory_vision
+    to: [idea, decision, archive_entry]
+    note: "비전은 실행 강요 없음 — 후보 또는 결정으로 자발 승격"
+
+  - from: decision
+    to: [task, protocol_canon, protocol_charter, archive_entry]
+    note: "결정은 태스크 또는 canon/charter 변경을 낳는다"
+
+  - from: task
+    to: [project, product, memory_operation, journey_entry, archive_entry]
+    note: "태스크 산출은 빌드/제품/운영메모/일지/폐기"
+
+  - from: project
+    to: [product, archive_entry]
+    note: "프로젝트는 제품으로 승격 또는 아카이브"
+
+  - from: product
+    to: [archive_entry]
+    note: "제품 종료는 archive/products/<name>/ 로 git mv"
+
+  - from: protocol_canon
+    to: [protocol_canon, registry_index, archive_entry]
+    note: "canon 변경은 새 canon 버전 생성 (canon-change-gate-v1 통과). canon은 registry_index를 emit할 수 있다."
+
+  - from: registry_index
+    to: [registry_index, archive_entry]
+    note: "인덱스는 하위 인덱스를 가질 수 있다 (예: concept-atlas → category-map)."
+
+  - from: memory_root
+    to: [archive_entry]
+    note: "뿌리는 폐기 금지 — 틀린 것으로 판명 시에도 archive로 이동"
+
+# Gate 매핑 — transition별 통과해야 하는 protocol gate.
+gates:
+  source_to_idea:        protocol/canon/discussion-planning-gate-v1.md
+  source_to_decision:    protocol/canon/discussion-planning-gate-v1.md
+  idea_to_decision:      protocol/canon/discussion-planning-gate-v1.md
+  decision_to_task:      protocol/canon/task-capability-cost-scope-gate-v1.md
+  decision_to_canon:     protocol/canon/canon-change-gate-v1.md
+  task_to_project:       protocol/canon/workflows/monorepo-frame-guard-v1.md
+  task_to_product:       protocol/canon/workflows/monorepo-frame-guard-v1.md
+  project_to_product:    protocol/canon/workflows/monorepo-frame-guard-v1.md
+  product_to_archive:    registry/layer-map.yaml#L7-sync-rule
+  any_to_canon:          protocol/canon/canon-change-gate-v1.md
+
+# Loop 결합.
+# loop-contracts.yaml의 3개 loop가 이 spine 위에서 동작한다.
+loop_binding:
+  memory_loop:
+    spec: protocol/canon/loops/memory-loop-v2.md
+    reads:  [tasks/done, tasks/active, sources/research/notes, decisions/]
+    writes: [memory/, journey/]
+  execution_loop:
+    spec: protocol/canon/loops/execution-loop-v2.md
+    reads:  [tasks/active, decisions/, protocol/, templates/]
+    writes: [projects/, products/, tasks/done]
+  recharge_loop:
+    spec: protocol/canon/loops/recharge-loop-v1.md
+    reads:  [memory/, journey/]
+    writes: [protocol/canon (canon promotion candidates)]

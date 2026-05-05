@@ -1,0 +1,158 @@
+version: 1
+profile: lumien-unified-artifact-schema-v1
+status: canonical
+spine_doc: protocol/canon/unified-system-architecture-v1.md
+
+# 모든 LUMIEN 자산이 따르는 공통 스키마.
+# Lumien_private 내 모든 폴더(sources, ideas, decisions, tasks, projects, products,
+# memory, protocol, registry, templates, journey, archive)의 자산은 이 스키마로
+# 매니페스트(`registry/unified/artifact-manifest.yaml`)에 등록된다.
+
+required_fields:
+  - id              # canonical identifier (예: TASK-019g, DEC-2026-04-25-platform-vercel)
+  - type            # artifact type, see types[]
+  - path            # repo-relative path
+  - layer           # L0..L7 from registry/layer-map.yaml
+  - lifecycle_state # see lifecycle-spine.yaml#states
+  - authority       # canon | grammar | charter | template | registry | runtime | none
+
+optional_fields:
+  - category          # concept-atlas v2 category id (registry/v2/category-map.yaml)
+  - parent            # upstream artifact id (single)
+  - children          # downstream artifact ids (list)
+  - produces          # what this artifact emits (artifact id list or symbolic name)
+  - consumes          # what this artifact reads (artifact id list or path)
+  - gate              # protocol gate id required to advance (예: canon-change-gate-v1)
+  - verification      # passed | warn | failed | pending
+  - provenance:
+      created_by:     # role or agent
+      created_at:     # ISO date
+      updated_at:     # ISO date
+      source_event:   # decision id, task id, or external trigger
+  - tags              # free-form labels (e.g. domain:form, lane:p0)
+
+types:
+  - id: source
+    folder: sources/
+    lifecycle_phase: input
+    description: "외부 입력 자료 (raw / extracted / normalized)"
+
+  - id: idea
+    folder: ideas/
+    lifecycle_phase: processing
+    description: "검토 후보 아이디어 (실행 강제 없음)"
+
+  - id: decision
+    folder: decisions/
+    lifecycle_phase: commitment
+    description: "확정된 판단 (시점·근거 고정, 변경 시 새 결정으로)"
+
+  - id: task
+    folder: tasks/
+    lifecycle_phase: execution
+    description: "Builder 1회 실행 단위"
+
+  - id: project
+    folder: projects/
+    lifecycle_phase: output_internal
+    description: "내부 빌드 / 레퍼런스 구현"
+
+  - id: product
+    folder: products/
+    lifecycle_phase: output_external
+    description: "실제 배포되는 서비스/상품 (L7)"
+
+  - id: memory_root
+    folder: memory/roots/
+    lifecycle_phase: memory
+    description: "근본 사슬, '왜'의 근원 (폐기 불가)"
+
+  - id: memory_identity
+    folder: memory/identity/
+    lifecycle_phase: memory
+    description: "정체성 진화 기록"
+
+  - id: memory_vision
+    folder: memory/visions/
+    lifecycle_phase: memory
+    description: "비전 발언 (실행 강제 없음)"
+
+  - id: memory_operation
+    folder: memory/operations/
+    lifecycle_phase: memory
+    description: "운영 메모, 비용 보고 등"
+
+  - id: protocol_canon
+    folder: protocol/canon/
+    lifecycle_phase: control
+    description: "헌법/규범. canon-change-gate 통과 후 변경 가능"
+
+  - id: protocol_charter
+    folder: protocol/charters/
+    lifecycle_phase: control
+    description: "도메인 미션 계약"
+
+  - id: protocol_kernel
+    folder: protocol/kernel/
+    lifecycle_phase: control
+    description: "런타임/오케스트레이션 베이스"
+
+  - id: protocol_grammar
+    folder: protocol/grammar/
+    lifecycle_phase: control
+    description: "Production Factory 문법군"
+
+  - id: protocol_schema
+    folder: protocol/schema/
+    lifecycle_phase: control
+    description: "데이터 envelope / validation 구조"
+
+  - id: protocol_codex
+    folder: protocol/codex/
+    lifecycle_phase: control
+    description: "Codex 운영 표면"
+
+  - id: protocol_compiler
+    folder: protocol/compiler/
+    lifecycle_phase: control
+    description: "Loom / Weave compiler lane"
+
+  - id: protocol_bridge
+    folder: protocol/bridges/
+    lifecycle_phase: control
+    description: "Bridge / Forge 어댑터 표면"
+
+  - id: protocol_domain
+    folder: protocol/domain/
+    lifecycle_phase: control
+    description: "Form / Fabric 도메인 명세"
+
+  - id: template
+    folder: templates/
+    lifecycle_phase: control
+    description: "각 자산 타입의 작성 템플릿"
+
+  - id: registry_index
+    folder: registry/
+    lifecycle_phase: control
+    description: "cross-cutting 인덱스 / 매니페스트"
+
+  - id: journey_entry
+    folder: journey/
+    lifecycle_phase: cross_cutting
+    description: "시간순 작업 일지"
+
+  - id: archive_entry
+    folder: archive/
+    lifecycle_phase: terminal
+    description: "폐기/대체된 자산 (history 보존)"
+
+# 다른 폴더에서 이 스키마 적용 시 최소 frontmatter:
+# ---
+# id: <ARTIFACT-ID>
+# type: <type-id>
+# layer: L<n>
+# lifecycle_state: <state>
+# parent: <id?>
+# gate: <gate-id?>
+# ---
