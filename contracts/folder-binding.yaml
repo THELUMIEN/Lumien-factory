@@ -89,8 +89,16 @@ folders:
       - protocol_compiler
       - protocol_bridge
       - protocol_domain
-    upstream: [decisions/, templates/, memory/]
+    upstream: []
     downstream: [모든 phase의 gate / authority 원천]
+    promotion_inputs:
+      # protocol은 어느 phase에도 의존하지 않는다 (런타임 의존 0).
+      # 단, 다음 transition을 통해 외부에서 변경이 시작될 수 있다 — 이는 의존이 아닌 promotion 이벤트:
+      #   decision → protocol_canon, decision → protocol_charter (lifecycle-spine.yaml#transitions)
+      #   memory_vision → idea → decision → protocol_canon (간접 promotion)
+      # 이 promotion은 canon-change-gate-v1을 반드시 통과한다.
+      via_transition_from_decisions: "spine#transitions: decision → protocol_canon"
+      via_template: "templates/는 protocol 작성 시 frontmatter 양식을 제공할 뿐 의존이 아님"
     gate: protocol/canon/canon-change-gate-v1.md
     sub_axis:
       canon: canon/        # 헌법 / 규범
@@ -102,7 +110,7 @@ folders:
       compiler: compiler/  # Loom / Weave
       bridges: bridges/    # Bridge / Forge
       domain: domain/      # Form / Fabric
-    rule: "canon 변경은 자동되지 않는다. 후보 → Architect 검토 → Hyun 승인 → canon 반영."
+    rule: "protocol/은 런타임 의존 0. canon 변경은 자동되지 않으며 decision→canon transition + canon-change-gate-v1을 통과해야 한다."
 
   registry/:
     phase: control
@@ -160,14 +168,73 @@ folders:
       deprecated-notes/: "폐기 노트"
     rule: "git mv 로만 이동 — history 보존."
 
+  # ─────────── automation phase (control plane 실행체) ───────────
+  scripts/:
+    phase: automation
+    accepts: [automation_script]
+    upstream: []
+    downstream: [dashboard/, registry/, .github/workflows/ (호출 대상)]
+    gate: none
+    sub_axis:
+      dashboard/: "snapshot 빌더"
+      loops/: "loop contract checker"
+      protocol/: "grammar / budget / hook 검증"
+      registry/: "registry sync 등 인덱스 검증"
+      finops/, context-janitor/, license/, meshint/, orchestrator/: "에이전트별 자동화"
+    rule: "scripts/는 spine을 코드로 강제한다 — 입력은 control 레이어, 출력은 snapshot/리포트."
+
+  packages/:
+    phase: automation
+    accepts: [package]
+    upstream: []
+    downstream: [scripts/, products/, projects/]
+    gate: none
+    rule: "packages/는 내부 공용 라이브러리 — 의존 방향은 외부에서 안으로만."
+
+  tools/:
+    phase: automation
+    accepts: [tool]
+    upstream: []
+    downstream: [scripts/, 개발자 CLI]
+    gate: none
+    rule: "tools/는 보조 CLI / 개발자 유틸. spine 의무는 없으나 매니페스트 등록 권장."
+
+  .github/:
+    phase: automation
+    accepts: [ci_workflow]
+    upstream: [scripts/]
+    downstream: [PR / push 트리거 검증]
+    gate: none
+    rule: ".github/workflows/는 scripts/를 호출하여 spine 검증을 자동 실행."
+
+  # ─────────── snapshot phase (현재 운영 상태 view) ───────────
+  dashboard/:
+    phase: snapshot
+    accepts: [dashboard_snapshot]
+    upstream: [scripts/dashboard/]
+    downstream: [readers (외부)]
+    gate: none
+    rule: "dashboard/는 read-only ops view — scripts/dashboard/ 가 생성하는 산출물."
+
+  # ─────────── docs phase (도구 / 가이드 / 회의록 / MVP 검토) ───────────
+  docs/:
+    phase: control
+    accepts: [doc_plan]
+    upstream: [decisions/, ideas/, sources/research]
+    downstream: [tasks/, protocol/ (canon 승격 후보), dashboard/]
+    gate: none
+    sub_axis:
+      v2/: "v2 운영 가이드 / 카테고리 분리 노트"
+    rule: "docs/는 구현 계획 / 검토 메모 / 운영 가이드. canon이 아니므로 권위는 없으나 task 입력으로 자주 사용."
+
 # 폴더 간 역행 금지 (back-flow guard).
 # 다음 방향은 매니페스트 검증에서 거부된다.
 backflow_forbidden:
   - from: protocol/
-    to:   [tasks/, projects/, products/, sources/, ideas/, decisions/]
-    note: "protocol은 어느 phase에도 의존하지 않는다."
+    to:   [tasks/, projects/, products/, sources/, ideas/, decisions/, dashboard/, scripts/]
+    note: "protocol은 런타임 의존 0. promotion은 spine#transitions로만 (decision → canon)."
   - from: registry/
-    to:   [projects/, products/, tasks/, ideas/, sources/]
+    to:   [projects/, products/, tasks/, ideas/, sources/, dashboard/]
     note: "registry는 인덱스만 — 실 자산을 가리키되 의존하지 않는다."
   - from: products/
     to:   [protocol/, registry/]
@@ -175,3 +242,12 @@ backflow_forbidden:
   - from: projects/
     to:   [protocol/, registry/]
     note: "L6는 control 레이어를 변경할 수 없다."
+  - from: dashboard/
+    to:   [protocol/, registry/, decisions/, tasks/, projects/, products/, memory/]
+    note: "dashboard/는 read-only — 어떤 컨텐츠도 생성하지 않는다."
+  - from: scripts/
+    to:   [protocol/, registry/]
+    note: "scripts/는 control을 강제할 뿐 변경하지 않는다 (canon 변경은 결정 → canon transition만)."
+  - from: packages/
+    to:   [protocol/, registry/, decisions/]
+    note: "packages/는 라이브러리 — control 레이어 변경 금지."

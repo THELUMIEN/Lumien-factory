@@ -147,6 +147,36 @@ types:
     lifecycle_phase: terminal
     description: "폐기/대체된 자산 (history 보존)"
 
+  - id: automation_script
+    folder: scripts/
+    lifecycle_phase: automation
+    description: "spine을 강제하는 실행 스크립트 (validator / checker / builder)"
+
+  - id: package
+    folder: packages/
+    lifecycle_phase: automation
+    description: "내부 공용 TypeScript / 라이브러리 패키지"
+
+  - id: tool
+    folder: tools/
+    lifecycle_phase: automation
+    description: "보조 CLI / 개발자 유틸리티"
+
+  - id: ci_workflow
+    folder: .github/
+    lifecycle_phase: automation
+    description: "GitHub Actions workflow — scripts/ 호출로 spine 검증"
+
+  - id: dashboard_snapshot
+    folder: dashboard/
+    lifecycle_phase: snapshot
+    description: "scripts/dashboard/가 생성하는 read-only ops view"
+
+  - id: doc_plan
+    folder: docs/
+    lifecycle_phase: control
+    description: "구현 계획 / 검토 메모 / 운영 가이드 (canon 권위 없음)"
+
 # 다른 폴더에서 이 스키마 적용 시 최소 frontmatter:
 # ---
 # id: <ARTIFACT-ID>
