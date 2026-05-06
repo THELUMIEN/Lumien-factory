@@ -375,6 +375,148 @@ artifacts:
     authority: registry
     category: source_absorption
 
+  # ─────────── automation phase (scripts / packages / tools / .github) ───────────
+  - id: SCRIPT-CHECK-REGISTRY-SYNC
+    type: automation_script
+    path: scripts/check-registry-sync.sh
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    category: dependency_backflow
+    consumes: [REG-LAYER-MAP]
+
+  - id: SCRIPT-LOOPS-CHECK-CONTRACTS
+    type: automation_script
+    path: scripts/loops/
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    category: loop_kernel
+    consumes: [REG-LOOP-CONTRACTS, CANON-LOOP-KERNEL-V1]
+
+  - id: SCRIPT-DASHBOARD-BUILDER
+    type: automation_script
+    path: scripts/dashboard/
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    category: system_direction
+    produces: [DASH-SNAPSHOT]
+
+  - id: SCRIPT-PROTOCOL-CHECKS
+    type: automation_script
+    path: scripts/protocol/
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    category: governance_guards
+
+  - id: PKG-ESLINT-CONFIG
+    type: package
+    path: packages/eslint-config/
+    layer: L0
+    lifecycle_state: active
+    authority: none
+
+  - id: PKG-TSCONFIG
+    type: package
+    path: packages/tsconfig/
+    layer: L0
+    lifecycle_state: active
+    authority: none
+
+  - id: TOOL-LUMIENCTL
+    type: tool
+    path: tools/lumienctl/
+    layer: L0
+    lifecycle_state: active
+    authority: none
+
+  - id: CI-REGISTRY-SYNC-CHECK
+    type: ci_workflow
+    path: .github/workflows/registry-sync-check.yml
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    consumes: [SCRIPT-CHECK-REGISTRY-SYNC]
+    parent: SCRIPT-CHECK-REGISTRY-SYNC
+
+  - id: CI-PROTOCOL-CHECK
+    type: ci_workflow
+    path: .github/workflows/protocol-check.yml
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    parent: SCRIPT-PROTOCOL-CHECKS
+
+  - id: CI-SECURITY-GUARD
+    type: ci_workflow
+    path: .github/workflows/security-guard.yml
+    layer: L0
+    lifecycle_state: active
+    authority: none
+
+  - id: CI-LUMIEN-PRODUCTION-LINE
+    type: ci_workflow
+    path: .github/workflows/lumien-production-line-ci.yaml
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    consumes: [REG-PRODUCTION-LINES]
+
+  # ─────────── snapshot phase (dashboard) ───────────
+  - id: DASH-SNAPSHOT
+    type: dashboard_snapshot
+    path: dashboard/dashboard-snapshot.json
+    layer: L0
+    lifecycle_state: generated
+    authority: none
+    category: system_direction
+    parent: SCRIPT-DASHBOARD-BUILDER
+
+  - id: DASH-INDEX-HTML
+    type: dashboard_snapshot
+    path: dashboard/index.html
+    layer: L0
+    lifecycle_state: generated
+    authority: none
+    category: system_direction
+    parent: SCRIPT-DASHBOARD-BUILDER
+
+  # ─────────── docs phase (계획 / 검토 / 가이드) ───────────
+  - id: DOC-DASHBOARD-PLAN-2026-05-05
+    type: doc_plan
+    path: docs/lumien-dashboard-implementation-plan-2026-05-05.md
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    category: system_direction
+
+  - id: DOC-DASHBOARD-PLAN-REVIEW-2026-05-05
+    type: doc_plan
+    path: docs/lumien-dashboard-plan-review-2026-05-05.md
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    category: system_direction
+    parent: DOC-DASHBOARD-PLAN-2026-05-05
+
+  - id: DOC-PRODUCTION-FACTORY-V2
+    type: doc_plan
+    path: docs/production-factory-v2.0.md
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    category: production_protocol
+
+  - id: DOC-CODING-CONVENTIONS
+    type: doc_plan
+    path: docs/coding-conventions.md
+    layer: L0
+    lifecycle_state: active
+    authority: none
+    category: builder_execution_contract
+
 # 매니페스트 확장 가이드:
 # 1. 새 자산 생성 시 templates/unified-artifact.md frontmatter를 채운다.
 # 2. 이 파일에 entry를 추가한다 (id/type/path/layer/lifecycle_state/authority 필수).

@@ -69,6 +69,18 @@ phases:
     purpose: "history 보존된 종료 상태"
     next: []
 
+  - id: automation
+    label: "자동화 / control plane 실행체"
+    folders: [scripts/, packages/, tools/, .github/]
+    purpose: "spine을 코드로 강제 — validator / checker / builder / CI"
+    next: [snapshot, control]    # control: protocol/canon 변경은 외부 transition으로만
+
+  - id: snapshot
+    label: "스냅샷 (현재 운영 상태 read-only view)"
+    folders: [dashboard/]
+    purpose: "automation이 생성하는 read-only 산출물"
+    next: []                     # snapshot은 단말 — 어떤 phase로도 이동하지 않음
+
 # 각 자산의 lifecycle_state.
 # state는 phase 안에서의 진행 단계.
 states:
@@ -118,6 +130,18 @@ states:
     sequence: [recorded]
   archive_entry:
     sequence: [archived]
+  automation_script:
+    sequence: [draft, active, deprecated]
+  package:
+    sequence: [draft, active, deprecated]
+  tool:
+    sequence: [draft, active, deprecated]
+  ci_workflow:
+    sequence: [draft, active, deprecated]
+  dashboard_snapshot:
+    sequence: [generated, stale, archived]
+  doc_plan:
+    sequence: [draft, active, superseded, archived]
 
 # 자산 사이의 허용 transition (parent → child type).
 # 매니페스트 검증 시 이 표를 따른다.
@@ -157,6 +181,30 @@ transitions:
   - from: registry_index
     to: [registry_index, archive_entry]
     note: "인덱스는 하위 인덱스를 가질 수 있다 (예: concept-atlas → category-map)."
+
+  - from: automation_script
+    to: [dashboard_snapshot, ci_workflow, archive_entry]
+    note: "스크립트는 snapshot / CI 호출자를 emit할 수 있다."
+
+  - from: ci_workflow
+    to: [ci_workflow, archive_entry]
+    note: "CI workflow는 스크립트를 호출할 뿐 컨텐츠를 생성하지 않는다."
+
+  - from: package
+    to: [package, archive_entry]
+    note: "패키지는 다른 패키지에 의존 (단방향)."
+
+  - from: tool
+    to: [tool, archive_entry]
+    note: "도구는 다른 도구를 부를 수 있다."
+
+  - from: doc_plan
+    to: [task, decision, doc_plan, archive_entry]
+    note: "구현 계획은 task 또는 decision으로 승격."
+
+  - from: dashboard_snapshot
+    to: [archive_entry]
+    note: "snapshot은 read-only — 다른 phase로 이동 불가."
 
   - from: memory_root
     to: [archive_entry]
