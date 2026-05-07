@@ -1,524 +1,88 @@
 version: 1
-profile: lumien-unified-artifact-manifest-v1
-status: seed
-schema: registry/unified/artifact-schema.yaml
-spine:  registry/unified/lifecycle-spine.yaml
-binding: registry/unified/folder-binding.yaml
-spine_doc: protocol/canon/unified-system-architecture-v1.md
-generated_at: 2026-05-05
-generation: manual-seed     # 향후 scripts/manifest/build-manifest.ts로 자동화 예정
+profile: example-artifact-manifest-v1
+status: example
+schema: artifact-schema.yaml
+spine:  lifecycle-spine.yaml
+binding: folder-binding.yaml
+spine_doc: example-spine-doc.md
+generated_at: 2026-01-01
+generation: synthetic-example
 
-# 이 파일은 Lumien-factory가 읽는 "공개 안전(public-safe)" 매니페스트.
-# 컨텐츠는 포함하지 않고, id/type/path/state/관계만 포함한다.
-# Lumien-factory의 validator는 이 매니페스트를 입력으로 받아 라이프사이클을 검증한다.
-
-# Seed 원칙:
-# - 각 폴더에서 최소 1개 대표 자산을 등록 (전체 enumeration은 아님).
-# - 등록된 자산만 검증 대상 — 점진적 확장 가능.
-# - 자산이 폴더 매핑 표(folder-binding.yaml)와 충돌하면 매니페스트가 우선,
-#   단 spine 검증은 binding 표를 따른다.
+# Synthetic example manifest. Replace with your own when integrating.
+# Each entry shows the minimum + a few optional fields supported by the schema.
 
 artifacts:
-  # ─────────── control phase (protocol / registry / templates) ───────────
-  - id: CANON-UNIFIED-SYSTEM-ARCHITECTURE-V1
+  - id: SAMPLE-CANON-V1
     type: protocol_canon
-    path: protocol/canon/unified-system-architecture-v1.md
+    path: protocol/canon/sample-rule-v1.md
     layer: L0
     lifecycle_state: canonical
     authority: canon
-    category: governance_guards
-    gate: protocol/canon/canon-change-gate-v1.md
-    produces: [REG-UNIFIED-SCHEMA, REG-UNIFIED-SPINE, REG-UNIFIED-BINDING, REG-UNIFIED-MANIFEST]
-    provenance:
-      created_by: architect
-      created_at: 2026-05-05
-      source_event: hyun-request:unify-system-architecture
 
-  - id: CANON-CHANGE-GATE-V1
-    type: protocol_canon
-    path: protocol/canon/canon-change-gate-v1.md
+  - id: SAMPLE-SCHEMA
+    type: registry_index
+    path: registry/sample-schema.yaml
     layer: L0
-    lifecycle_state: canonical
-    authority: canon
-    category: governance_guards
+    lifecycle_state: active
+    authority: registry
+    parent: SAMPLE-CANON-V1
 
-  - id: CANON-DISCUSSION-PLANNING-GATE-V1
-    type: protocol_canon
-    path: protocol/canon/discussion-planning-gate-v1.md
-    layer: L0
-    lifecycle_state: canonical
-    authority: canon
-    category: governance_guards
-
-  - id: CANON-RECORD-DISCIPLINE-V1
-    type: protocol_canon
-    path: protocol/canon/record-discipline-v1.md
-    layer: L0
-    lifecycle_state: canonical
-    authority: canon
-    category: memory_context
-
-  - id: CANON-CONTEXT-BUDGET-V1
-    type: protocol_canon
-    path: protocol/canon/context-budget-protocol-v1.md
-    layer: L0
-    lifecycle_state: canonical
-    authority: canon
-    category: memory_context
-
-  - id: CANON-MEMORY-LOOP-V1
-    type: protocol_canon
-    path: protocol/canon/lumien-memory-loop-v1.md
-    layer: L0
-    lifecycle_state: canonical
-    authority: canon
-    category: memory_context
-
-  - id: CANON-LOOP-KERNEL-V1
-    type: protocol_canon
-    path: protocol/canon/loops/loop-contract-kernel-v1.md
-    layer: L0
-    lifecycle_state: canonical
-    authority: canon
-    category: loop_kernel
-    produces: [LOOP-MEMORY-V2, LOOP-EXECUTION-V2, LOOP-RECHARGE-V1]
-
-  - id: LOOP-MEMORY-V2
-    type: protocol_canon
-    path: protocol/canon/loops/memory-loop-v2.md
-    layer: L1
-    lifecycle_state: canonical
-    authority: canon
-    category: loop_kernel
-    parent: CANON-LOOP-KERNEL-V1
-
-  - id: LOOP-EXECUTION-V2
-    type: protocol_canon
-    path: protocol/canon/loops/execution-loop-v2.md
-    layer: L1
-    lifecycle_state: canonical
-    authority: canon
-    category: loop_kernel
-    parent: CANON-LOOP-KERNEL-V1
-
-  - id: LOOP-RECHARGE-V1
-    type: protocol_canon
-    path: protocol/canon/loops/recharge-loop-v1.md
-    layer: L1
-    lifecycle_state: canonical
-    authority: canon
-    category: loop_kernel
-    parent: CANON-LOOP-KERNEL-V1
-
-  - id: GRAMMAR-PRODUCTION-FACTORY-V2
-    type: protocol_grammar
-    path: protocol/grammar/lumien-production-factory-v2.md
-    layer: L3
-    lifecycle_state: canonical
-    authority: grammar
-    category: production_protocol
-
-  - id: GRAMMAR-OVERVIEW
-    type: protocol_grammar
-    path: protocol/grammar/grammar-overview.md
-    layer: L3
-    lifecycle_state: canonical
-    authority: grammar
-    category: production_protocol
-
-  - id: KERNEL-LUMIEN-V0-2
-    type: protocol_kernel
-    path: protocol/kernel/lumien-kernel-v0.2.md
-    layer: L1
-    lifecycle_state: canonical
-    authority: canon
-    category: system_direction
-
-  - id: CHARTER-FORM
-    type: protocol_charter
-    path: protocol/charters/form-charter.md
+  - id: SAMPLE-IDEA
+    type: idea
+    path: ideas/sample-idea.md
     layer: L2
-    lifecycle_state: accepted
-    authority: charter
-    category: domain_runtime
-
-  - id: REG-LAYER-MAP
-    type: registry_index
-    path: registry/layer-map.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: dependency_backflow
-
-  - id: REG-CANONICAL-TERMS
-    type: registry_index
-    path: registry/canonical-terms.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: system_direction
-
-  - id: REG-LOOP-CONTRACTS
-    type: registry_index
-    path: registry/loop-contracts.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: loop_kernel
-    parent: CANON-LOOP-KERNEL-V1
-
-  - id: REG-PRODUCTION-LINES
-    type: registry_index
-    path: registry/production-lines.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: production_protocol
-
-  - id: REG-CONCEPT-ATLAS-V1
-    type: registry_index
-    path: registry/concept-atlas-v1.md
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: system_direction
-
-  - id: REG-V2-CATEGORY-MAP
-    type: registry_index
-    path: registry/v2/category-map.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: system_direction
-    parent: REG-CONCEPT-ATLAS-V1
-
-  - id: REG-UNIFIED-SCHEMA
-    type: registry_index
-    path: registry/unified/artifact-schema.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: governance_guards
-    parent: CANON-UNIFIED-SYSTEM-ARCHITECTURE-V1
-
-  - id: REG-UNIFIED-SPINE
-    type: registry_index
-    path: registry/unified/lifecycle-spine.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: governance_guards
-    parent: CANON-UNIFIED-SYSTEM-ARCHITECTURE-V1
-    consumes: [REG-UNIFIED-SCHEMA]
-
-  - id: REG-UNIFIED-BINDING
-    type: registry_index
-    path: registry/unified/folder-binding.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: governance_guards
-    parent: CANON-UNIFIED-SYSTEM-ARCHITECTURE-V1
-    consumes: [REG-UNIFIED-SPINE]
-
-  - id: REG-UNIFIED-MANIFEST
-    type: registry_index
-    path: registry/unified/artifact-manifest.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: governance_guards
-    parent: CANON-UNIFIED-SYSTEM-ARCHITECTURE-V1
-    consumes: [REG-UNIFIED-SCHEMA, REG-UNIFIED-SPINE, REG-UNIFIED-BINDING]
-
-  - id: TPL-BUILDER-TASK
-    type: template
-    path: templates/builder-task.md
-    layer: L0
-    lifecycle_state: active
-    authority: template
-    category: builder_execution_contract
-
-  - id: TPL-RECORD-PACKET
-    type: template
-    path: templates/record-packet.md
-    layer: L0
-    lifecycle_state: active
-    authority: template
-    category: memory_context
-
-  - id: TPL-UNIFIED-ARTIFACT
-    type: template
-    path: templates/unified-artifact.md
-    layer: L0
-    lifecycle_state: active
-    authority: template
-    category: governance_guards
-    consumes: [REG-UNIFIED-SCHEMA]
-
-  # ─────────── memory phase ───────────
-  - id: MEM-INDEX
-    type: registry_index
-    path: memory/INDEX.md
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: memory_context
-
-  - id: MEM-ROOT-MESHINT-CHAIN
-    type: memory_root
-    path: memory/roots/2026-04-27-meshint-root-chain.md
-    layer: L0
-    lifecycle_state: active
+    lifecycle_state: proposed
     authority: none
-    category: memory_context
 
-  - id: MEM-ID-HYUN-WORKING-STYLE
-    type: memory_identity
-    path: memory/identity/hyun-working-style-v1.md
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    category: memory_context
-
-  # ─────────── commitment phase ───────────
-  - id: DEC-2026-04-25-PLATFORM-VERCEL
+  - id: SAMPLE-DECISION
     type: decision
-    path: decisions/2026-04-25-platform-vercel.md
+    path: decisions/sample-decision.md
     layer: L2
     lifecycle_state: accepted
     authority: none
-    category: dependency_backflow
+    parent: SAMPLE-IDEA
 
-  - id: DEC-2026-04-25-MONOREPO-MULTI-DEPLOY
-    type: decision
-    path: decisions/2026-04-25-repo-monorepo-multi-deploy.md
-    layer: L2
-    lifecycle_state: accepted
-    authority: none
-    category: dependency_backflow
-
-  - id: DEC-2026-04-30-DELEGATED-APPROVALS-BATCH
-    type: decision
-    path: decisions/2026-04-30-delegated-approvals-batch.md
-    layer: L2
-    lifecycle_state: accepted
-    authority: none
-    category: governance_guards
-
-  # ─────────── execution phase ───────────
-  - id: TASK-BOARD
-    type: registry_index
-    path: tasks/TASK-BOARD.md
-    layer: L0
-    lifecycle_state: active
-    authority: registry
-    category: builder_execution_contract
-
-  - id: TASK-SESSION-HANDOFF
+  - id: SAMPLE-TASK
     type: task
-    path: tasks/active/SESSION-HANDOFF.md
+    path: tasks/active/sample-task.md
     layer: L2
     lifecycle_state: active
     authority: none
-    category: memory_context
+    parent: SAMPLE-DECISION
 
-  - id: TASK-MSH-006
-    type: task
-    path: tasks/active/HYUN-DECISION-QUEUE.md
-    layer: L7
-    lifecycle_state: blocked
-    authority: none
-    category: dependency_backflow
-    tags: [meshint, deploy, hyun-action]
-
-  # ─────────── output phase ───────────
-  - id: PRJ-FORM
+  - id: SAMPLE-PROJECT
     type: project
-    path: projects/form/
+    path: projects/sample-project/
     layer: L6
     lifecycle_state: active
     authority: none
-    category: domain_runtime
+    parent: SAMPLE-TASK
 
-  - id: PRJ-FABRIC
-    type: project
-    path: projects/fabric/
-    layer: L6
-    lifecycle_state: active
-    authority: none
-    category: domain_runtime
-
-  - id: PRJ-MODEL-BROKER
-    type: project
-    path: projects/model-broker/
-    layer: L6
-    lifecycle_state: active
-    authority: none
-    category: production_protocol
-
-  - id: PRD-MESHINT-COMMERCIAL
+  - id: SAMPLE-PRODUCT
     type: product
-    path: products/meshint-commercial/
+    path: products/sample-product/
     layer: L7
     lifecycle_state: build_ready
     authority: none
-    category: dependency_backflow
-    tags: [active]
+    parent: SAMPLE-PROJECT
 
-  # ─────────── input phase ───────────
-  - id: SRC-INDEX
-    type: registry_index
-    path: registry/source-index.yaml
+  - id: SAMPLE-TEMPLATE
+    type: template
+    path: templates/sample-template.md
     layer: L0
     lifecycle_state: active
-    authority: registry
-    category: source_absorption
+    authority: template
 
-  # ─────────── automation phase (scripts / packages / tools / .github) ───────────
-  - id: SCRIPT-CHECK-REGISTRY-SYNC
-    type: automation_script
-    path: scripts/check-registry-sync.sh
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    category: dependency_backflow
-    consumes: [REG-LAYER-MAP]
-
-  - id: SCRIPT-LOOPS-CHECK-CONTRACTS
-    type: automation_script
-    path: scripts/loops/
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    category: loop_kernel
-    consumes: [REG-LOOP-CONTRACTS, CANON-LOOP-KERNEL-V1]
-
-  - id: SCRIPT-DASHBOARD-BUILDER
-    type: automation_script
-    path: scripts/dashboard/
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    category: system_direction
-    produces: [DASH-SNAPSHOT]
-
-  - id: SCRIPT-PROTOCOL-CHECKS
-    type: automation_script
-    path: scripts/protocol/
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    category: governance_guards
-
-  - id: PKG-ESLINT-CONFIG
-    type: package
-    path: packages/eslint-config/
+  - id: SAMPLE-MEMORY-ROOT
+    type: memory_root
+    path: memory/roots/sample-root.md
     layer: L0
     lifecycle_state: active
     authority: none
 
-  - id: PKG-TSCONFIG
-    type: package
-    path: packages/tsconfig/
+  - id: SAMPLE-JOURNEY
+    type: journey_entry
+    path: journey/sample-entry.md
     layer: L0
-    lifecycle_state: active
+    lifecycle_state: recorded
     authority: none
-
-  - id: TOOL-LUMIENCTL
-    type: tool
-    path: tools/lumienctl/
-    layer: L0
-    lifecycle_state: active
-    authority: none
-
-  - id: CI-REGISTRY-SYNC-CHECK
-    type: ci_workflow
-    path: .github/workflows/registry-sync-check.yml
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    consumes: [SCRIPT-CHECK-REGISTRY-SYNC]
-    parent: SCRIPT-CHECK-REGISTRY-SYNC
-
-  - id: CI-PROTOCOL-CHECK
-    type: ci_workflow
-    path: .github/workflows/protocol-check.yml
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    parent: SCRIPT-PROTOCOL-CHECKS
-
-  - id: CI-SECURITY-GUARD
-    type: ci_workflow
-    path: .github/workflows/security-guard.yml
-    layer: L0
-    lifecycle_state: active
-    authority: none
-
-  - id: CI-LUMIEN-PRODUCTION-LINE
-    type: ci_workflow
-    path: .github/workflows/lumien-production-line-ci.yaml
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    consumes: [REG-PRODUCTION-LINES]
-
-  # ─────────── snapshot phase (dashboard) ───────────
-  - id: DASH-SNAPSHOT
-    type: dashboard_snapshot
-    path: dashboard/dashboard-snapshot.json
-    layer: L0
-    lifecycle_state: generated
-    authority: none
-    category: system_direction
-    parent: SCRIPT-DASHBOARD-BUILDER
-
-  - id: DASH-INDEX-HTML
-    type: dashboard_snapshot
-    path: dashboard/index.html
-    layer: L0
-    lifecycle_state: generated
-    authority: none
-    category: system_direction
-    parent: SCRIPT-DASHBOARD-BUILDER
-
-  # ─────────── docs phase (계획 / 검토 / 가이드) ───────────
-  - id: DOC-DASHBOARD-PLAN-2026-05-05
-    type: doc_plan
-    path: docs/lumien-dashboard-implementation-plan-2026-05-05.md
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    category: system_direction
-
-  - id: DOC-DASHBOARD-PLAN-REVIEW-2026-05-05
-    type: doc_plan
-    path: docs/lumien-dashboard-plan-review-2026-05-05.md
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    category: system_direction
-    parent: DOC-DASHBOARD-PLAN-2026-05-05
-
-  - id: DOC-PRODUCTION-FACTORY-V2
-    type: doc_plan
-    path: docs/production-factory-v2.0.md
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    category: production_protocol
-
-  - id: DOC-CODING-CONVENTIONS
-    type: doc_plan
-    path: docs/coding-conventions.md
-    layer: L0
-    lifecycle_state: active
-    authority: none
-    category: builder_execution_contract
-
-# 매니페스트 확장 가이드:
-# 1. 새 자산 생성 시 templates/unified-artifact.md frontmatter를 채운다.
-# 2. 이 파일에 entry를 추가한다 (id/type/path/layer/lifecycle_state/authority 필수).
-# 3. parent/children 으로 lineage 연결.
-# 4. PR에서 factory validator (.github/workflows/factory-validate.yml) 가 검증.

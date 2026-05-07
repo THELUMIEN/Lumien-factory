@@ -4,8 +4,7 @@ import type { Finding } from "./types.js";
 /**
  * Simulate a state transition for an artifact in the manifest.
  * Returns findings — does NOT mutate the manifest. The factory does not
- * write back into Lumien_private; promotion is enacted by Hyun in the
- * private repo, via the canon-change-gate or task-scope gate.
+ * write back into any source repository; promotion is enacted externally.
  */
 export function simulatePromote(
   dir: string,
