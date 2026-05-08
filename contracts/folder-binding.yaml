@@ -1,11 +1,11 @@
 version: 1
-profile: lumien-unified-folder-binding-v1
-status: canonical
-schema: registry/unified/artifact-schema.yaml
-spine: registry/unified/lifecycle-spine.yaml
+profile: example-folder-binding-v1
+status: example
+schema: artifact-schema.yaml
+spine: lifecycle-spine.yaml
 
-# 각 폴더가 라이프사이클의 어떤 phase에 속하는지, 어디로부터 받고 어디로 보내는지.
-# 이 표가 폴더 사이의 "spine"이다 — 각 폴더 README는 이 표를 참조하면 된다.
+# Folder ↔ lifecycle phase mapping plus backflow guards.
+# Folders below are the canonical phase containers. Sub-axes are illustrative.
 
 folders:
   sources/:
@@ -13,20 +13,16 @@ folders:
     accepts: [source]
     upstream: [external]
     downstream: [ideas/, decisions/, registry/, archive/]
-    gate: protocol/canon/workflows/source-intake-separation-v1.md
-    sub_axis:
-      processing: [raw/, extracted/, normalized/]
-      kind:       [references/, assets/, research/]
-      handoffs:   [handoffs/]
-    rule: "vendor sources stay under sources/raw/vendors and are referenced only through normalized wrappers."
+    gate: gate.intake-separation
+    rule: "vendor sources stay quarantined under sources/raw/ and are referenced only through normalized wrappers."
 
   ideas/:
     phase: processing
     accepts: [idea]
     upstream: [sources/, memory/visions/]
     downstream: [decisions/, archive/]
-    gate: protocol/canon/discussion-planning-gate-v1.md
-    rule: "아이디어는 실행 강제 없음. 결정 승격만 허용 (또는 폐기)."
+    gate: gate.discussion-planning
+    rule: "ideas carry no execution mandate. promotion to decision or archive only."
 
   decisions/:
     phase: commitment
@@ -34,48 +30,41 @@ folders:
     upstream: [ideas/, sources/, memory/, tasks/]
     downstream: [tasks/, protocol/canon/, protocol/charters/, archive/]
     gate:
-      default: protocol/canon/discussion-planning-gate-v1.md
-      canon_change: protocol/canon/canon-change-gate-v1.md
-    rule: "확정된 판단은 시점·근거 고정. 변경은 새 결정으로 생성, 이전 결정은 superseded 표시."
+      default:      gate.discussion-planning
+      canon_change: gate.canon-change
+    rule: "committed judgments are timestamp-fixed. revisions create a new decision; the prior decision is marked superseded."
 
   tasks/:
     phase: execution
     accepts: [task]
     upstream: [decisions/, ideas/, sources/, memory/]
     downstream: [projects/, products/, memory/operations/, journey/, archive/]
-    gate: protocol/canon/task-capability-cost-scope-gate-v1.md
-    sub_axis:
-      lanes: [inbox/, active/, done/]
-    board: tasks/TASK-BOARD.md
-    rule: "Builder는 한 번에 task card 1개만 실행. files changed <= 6, public API changes <= 1, target dir = 1."
+    gate: gate.task-scope
+    rule: "one task card per execution unit."
 
   projects/:
     phase: output_internal
     accepts: [project]
     upstream: [tasks/]
     downstream: [products/, archive/]
-    gate: protocol/canon/workflows/monorepo-frame-guard-v1.md
-    rule: "내부 빌드 / 레퍼런스. 제품 승격 시 products/ 로 이동 (git mv 보존)."
+    gate: gate.frame-guard
+    rule: "internal build / reference. promotion to a product moves to products/."
 
   products/:
     phase: output_external
     accepts: [product]
     upstream: [projects/, tasks/]
     downstream: [archive/products/]
-    gate: registry/layer-map.yaml#L7-sync-rule
-    deployment_matrix: registry/product-deployment-matrix.md
-    rule: "L7 components는 products/ + archive/products/ 와 항상 일치 (registry-sync-check 자동 검증)."
+    gate: gate.archive-sync
+    rule: "externally deployed products. retired products move to archive/products/."
 
   memory/:
     phase: memory
     accepts: [memory_root, memory_identity, memory_vision, memory_operation]
-    upstream: [decisions/, tasks/done, journey/, sources/research/notes]
-    downstream: [protocol/canon/ (승격 후보 시), ideas/ (vision→idea)]
-    gate: protocol/canon/record-discipline-v1.md
-    sub_axis:
-      kinds: [roots/, identity/, visions/, operations/]
-    index: memory/INDEX.md
-    rule: "roots/는 폐기 금지. 틀린 것으로 판명 시에도 archive/로 이동."
+    upstream: [decisions/, tasks/, journey/, sources/]
+    downstream: [protocol/canon/, ideas/]
+    gate: gate.record-discipline
+    rule: "memory roots are not deleted; superseded roots move to archive/."
 
   protocol/:
     phase: control
@@ -85,103 +74,50 @@ folders:
       - protocol_kernel
       - protocol_grammar
       - protocol_schema
-      - protocol_codex
-      - protocol_compiler
-      - protocol_bridge
-      - protocol_domain
     upstream: []
-    downstream: [모든 phase의 gate / authority 원천]
-    promotion_inputs:
-      # protocol은 어느 phase에도 의존하지 않는다 (런타임 의존 0).
-      # 단, 다음 transition을 통해 외부에서 변경이 시작될 수 있다 — 이는 의존이 아닌 promotion 이벤트:
-      #   decision → protocol_canon, decision → protocol_charter (lifecycle-spine.yaml#transitions)
-      #   memory_vision → idea → decision → protocol_canon (간접 promotion)
-      # 이 promotion은 canon-change-gate-v1을 반드시 통과한다.
-      via_transition_from_decisions: "spine#transitions: decision → protocol_canon"
-      via_template: "templates/는 protocol 작성 시 frontmatter 양식을 제공할 뿐 의존이 아님"
-    gate: protocol/canon/canon-change-gate-v1.md
-    sub_axis:
-      canon: canon/        # 헌법 / 규범
-      charters: charters/  # 도메인 미션
-      kernel: kernel/      # 런타임 베이스
-      grammar: grammar/    # Production Factory 문법군
-      schema: schema/      # 데이터 envelope
-      codex: codex/        # 운영 표면
-      compiler: compiler/  # Loom / Weave
-      bridges: bridges/    # Bridge / Forge
-      domain: domain/      # Form / Fabric
-    rule: "protocol/은 런타임 의존 0. canon 변경은 자동되지 않으며 decision→canon transition + canon-change-gate-v1을 통과해야 한다."
+    downstream: [all phases — gates / authority origin]
+    gate: gate.canon-change
+    rule: "protocol has zero runtime dependency. canon changes only via decision → canon transition + canon-change gate."
 
   registry/:
     phase: control
     accepts: [registry_index]
-    upstream: [모든 폴더 — 매니페스트 입력]
-    downstream: [factory (Lumien-factory), validators, dashboards]
-    gate: scripts/check-registry-sync.sh
-    files:
-      layer-map.yaml:                "L0~L7 + L7 product 상태"
-      canonical-terms.yaml:          "용어 canonical 정의"
-      project-index.yaml:            "프로젝트별 태스크/상태"
-      source-index.yaml:             "sources/ 흡수 기록"
-      product-deployment-matrix.md:  "제품 배포 상태"
-      block-index.yaml:              "재사용 블록"
-      loop-contracts.yaml:           "memory/execution/recharge loop 계약"
-      production-lines.yaml:         "5개 production line"
-      concept-atlas-v1.{md,yaml}:    "Stage A/B 개념 지도"
-      v2/category-map.yaml:          "v2 카테고리 (10개)"
-      v2/concept-map.json:           "v2 개념 노드"
-      v2/factory-use-map.yaml:       "factory가 어떤 카테고리를 어떻게 쓰는가"
-      v2/protocol-authority-map.yaml: "protocol 권위 → emit/check"
-      unified/artifact-schema.yaml:   "공통 스키마 (이 파일이 가리키는 곳)"
-      unified/lifecycle-spine.yaml:   "라이프사이클 phase / state / transition"
-      unified/folder-binding.yaml:    "이 파일"
-      unified/artifact-manifest.yaml: "자산 매니페스트 (factory 입력)"
-    rule: "registry는 모든 폴더에 대한 single source of truth. 불일치는 defect."
+    upstream: [all folders — manifest input]
+    downstream: [validators, dashboards]
+    gate: gate.registry-sync
+    rule: "registry is the single source of truth for cross-cutting indices. inconsistency is a defect."
 
   templates/:
     phase: control
     accepts: [template]
     upstream: [protocol/grammar/]
-    downstream: [tasks/, decisions/, ideas/, memory/, sources/normalized/, ... 작성 시점]
+    downstream: [tasks/, decisions/, ideas/, memory/, sources/, ...]
     gate: none
-    rule: "템플릿은 자산 작성 시 frontmatter 스키마(artifact-schema.yaml) 적용을 강제한다."
+    rule: "templates enforce the schema (artifact-schema.yaml) at authoring time."
 
   journey/:
     phase: cross_cutting
     accepts: [journey_entry]
-    upstream: [tasks/done, decisions/, sources/handoffs]
+    upstream: [tasks/, decisions/, sources/]
     downstream: [memory/]
     gate: none
-    rule: "시간순 일지. 모든 phase 참조 가능 (단방향 — journey는 다른 폴더에 영향 없음)."
+    rule: "chronological log. one-way — journey does not write into other folders."
 
   archive/:
     phase: terminal
     accepts: [archive_entry]
-    upstream: [모든 phase]
+    upstream: [all phases]
     downstream: []
-    gate: registry/layer-map.yaml#L7-sync-rule (제품 한정)
-    sub_axis:
-      products/: "L7 archived 제품"
-      duplicated-pdfs/: "중복 PDF"
-      old-names/: "이전 명명"
-      postmortems/: "사후 분석"
-      deprecated-notes/: "폐기 노트"
-    rule: "git mv 로만 이동 — history 보존."
+    gate: gate.archive-sync
+    rule: "move via git mv only — preserve history."
 
-  # ─────────── automation phase (control plane 실행체) ───────────
   scripts/:
     phase: automation
     accepts: [automation_script]
     upstream: []
-    downstream: [dashboard/, registry/, .github/workflows/ (호출 대상)]
+    downstream: [dashboard/, registry/, .github/]
     gate: none
-    sub_axis:
-      dashboard/: "snapshot 빌더"
-      loops/: "loop contract checker"
-      protocol/: "grammar / budget / hook 검증"
-      registry/: "registry sync 등 인덱스 검증"
-      finops/, context-janitor/, license/, meshint/, orchestrator/: "에이전트별 자동화"
-    rule: "scripts/는 spine을 코드로 강제한다 — 입력은 control 레이어, 출력은 snapshot/리포트."
+    rule: "scripts enforce the spine in code — input is the control layer, output is snapshots / reports."
 
   packages/:
     phase: automation
@@ -189,65 +125,61 @@ folders:
     upstream: []
     downstream: [scripts/, products/, projects/]
     gate: none
-    rule: "packages/는 내부 공용 라이브러리 — 의존 방향은 외부에서 안으로만."
+    rule: "shared libraries — dependency direction is outside-in only."
 
   tools/:
     phase: automation
     accepts: [tool]
     upstream: []
-    downstream: [scripts/, 개발자 CLI]
+    downstream: [scripts/, developer CLIs]
     gate: none
-    rule: "tools/는 보조 CLI / 개발자 유틸. spine 의무는 없으나 매니페스트 등록 권장."
+    rule: "developer utilities. registration in the manifest is recommended."
 
   .github/:
     phase: automation
     accepts: [ci_workflow]
     upstream: [scripts/]
-    downstream: [PR / push 트리거 검증]
+    downstream: [PR / push validation]
     gate: none
-    rule: ".github/workflows/는 scripts/를 호출하여 spine 검증을 자동 실행."
+    rule: ".github/workflows/ invoke scripts/ to run spine checks automatically."
 
-  # ─────────── snapshot phase (현재 운영 상태 view) ───────────
   dashboard/:
     phase: snapshot
     accepts: [dashboard_snapshot]
     upstream: [scripts/dashboard/]
-    downstream: [readers (외부)]
+    downstream: [external readers]
     gate: none
-    rule: "dashboard/는 read-only ops view — scripts/dashboard/ 가 생성하는 산출물."
+    rule: "read-only operational view emitted by automation."
 
-  # ─────────── docs phase (도구 / 가이드 / 회의록 / MVP 검토) ───────────
   docs/:
     phase: control
     accepts: [doc_plan]
-    upstream: [decisions/, ideas/, sources/research]
-    downstream: [tasks/, protocol/ (canon 승격 후보), dashboard/]
+    upstream: [decisions/, ideas/, sources/]
+    downstream: [tasks/, protocol/, dashboard/]
     gate: none
-    sub_axis:
-      v2/: "v2 운영 가이드 / 카테고리 분리 노트"
-    rule: "docs/는 구현 계획 / 검토 메모 / 운영 가이드. canon이 아니므로 권위는 없으나 task 입력으로 자주 사용."
+    rule: "plans / review notes / operating guides. no canonical authority."
 
-# 폴더 간 역행 금지 (back-flow guard).
-# 다음 방향은 매니페스트 검증에서 거부된다.
+# Forbidden folder-to-folder directions. Manifest entries violating these
+# are rejected by the validator (checkBackflow).
 backflow_forbidden:
   - from: protocol/
     to:   [tasks/, projects/, products/, sources/, ideas/, decisions/, dashboard/, scripts/]
-    note: "protocol은 런타임 의존 0. promotion은 spine#transitions로만 (decision → canon)."
+    note: "protocol has zero runtime dependency. promotion happens via spine#transitions only."
   - from: registry/
     to:   [projects/, products/, tasks/, ideas/, sources/, dashboard/]
-    note: "registry는 인덱스만 — 실 자산을 가리키되 의존하지 않는다."
+    note: "registry is index-only — it points at assets without depending on them."
   - from: products/
     to:   [protocol/, registry/]
-    note: "L7은 control 레이어를 변경할 수 없다."
+    note: "deployed products cannot mutate the control layer."
   - from: projects/
     to:   [protocol/, registry/]
-    note: "L6는 control 레이어를 변경할 수 없다."
+    note: "internal builds cannot mutate the control layer."
   - from: dashboard/
     to:   [protocol/, registry/, decisions/, tasks/, projects/, products/, memory/]
-    note: "dashboard/는 read-only — 어떤 컨텐츠도 생성하지 않는다."
+    note: "dashboard is read-only — it does not emit content."
   - from: scripts/
     to:   [protocol/, registry/]
-    note: "scripts/는 control을 강제할 뿐 변경하지 않는다 (canon 변경은 결정 → canon transition만)."
+    note: "scripts enforce the control layer; they do not mutate it."
   - from: packages/
     to:   [protocol/, registry/, decisions/]
-    note: "packages/는 라이브러리 — control 레이어 변경 금지."
+    note: "shared libraries cannot mutate the control layer."

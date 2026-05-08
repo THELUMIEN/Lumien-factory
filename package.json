@@ -2,7 +2,7 @@
   "name": "lumien-factory",
   "version": "0.1.0",
   "private": true,
-  "description": "LUMIEN unified-system operational spine (public-safe). Validates Lumien_private artifact manifest against the unified lifecycle.",
+  "description": "A generic artifact lifecycle validator. Validates a manifest against a declarative spine (schema + states + transitions + folder bindings).",
   "type": "module",
   "engines": {
     "node": ">=20.0.0"

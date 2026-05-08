@@ -1,188 +1,155 @@
 version: 1
-profile: lumien-unified-artifact-schema-v1
-status: canonical
-spine_doc: protocol/canon/unified-system-architecture-v1.md
+profile: example-artifact-schema-v1
+status: example
+spine_doc: example-spine-doc.md
 
-# 모든 LUMIEN 자산이 따르는 공통 스키마.
-# Lumien_private 내 모든 폴더(sources, ideas, decisions, tasks, projects, products,
-# memory, protocol, registry, templates, journey, archive)의 자산은 이 스키마로
-# 매니페스트(`registry/unified/artifact-manifest.yaml`)에 등록된다.
+# Shared schema for all artifact types in the example bundle.
 
 required_fields:
-  - id              # canonical identifier (예: TASK-019g, DEC-2026-04-25-platform-vercel)
+  - id              # canonical identifier
   - type            # artifact type, see types[]
   - path            # repo-relative path
-  - layer           # L0..L7 from registry/layer-map.yaml
+  - layer           # layer label, e.g. L0..L7
   - lifecycle_state # see lifecycle-spine.yaml#states
   - authority       # canon | grammar | charter | template | registry | runtime | none
 
 optional_fields:
-  - category          # concept-atlas v2 category id (registry/v2/category-map.yaml)
+  - category          # free-form category id
   - parent            # upstream artifact id (single)
   - children          # downstream artifact ids (list)
   - produces          # what this artifact emits (artifact id list or symbolic name)
   - consumes          # what this artifact reads (artifact id list or path)
-  - gate              # protocol gate id required to advance (예: canon-change-gate-v1)
+  - gate              # gate id required to advance
   - verification      # passed | warn | failed | pending
   - provenance:
       created_by:     # role or agent
       created_at:     # ISO date
       updated_at:     # ISO date
       source_event:   # decision id, task id, or external trigger
-  - tags              # free-form labels (e.g. domain:form, lane:p0)
+  - tags              # free-form labels
 
 types:
   - id: source
     folder: sources/
     lifecycle_phase: input
-    description: "외부 입력 자료 (raw / extracted / normalized)"
+    description: "raw / extracted / normalized external input material"
 
   - id: idea
     folder: ideas/
     lifecycle_phase: processing
-    description: "검토 후보 아이디어 (실행 강제 없음)"
+    description: "candidate idea under review (no execution mandate)"
 
   - id: decision
     folder: decisions/
     lifecycle_phase: commitment
-    description: "확정된 판단 (시점·근거 고정, 변경 시 새 결정으로)"
+    description: "committed judgment with fixed timestamp and rationale"
 
   - id: task
     folder: tasks/
     lifecycle_phase: execution
-    description: "Builder 1회 실행 단위"
+    description: "single execution unit"
 
   - id: project
     folder: projects/
     lifecycle_phase: output_internal
-    description: "내부 빌드 / 레퍼런스 구현"
+    description: "internal build / reference implementation"
 
   - id: product
     folder: products/
     lifecycle_phase: output_external
-    description: "실제 배포되는 서비스/상품 (L7)"
+    description: "externally deployed service or product"
 
   - id: memory_root
     folder: memory/roots/
     lifecycle_phase: memory
-    description: "근본 사슬, '왜'의 근원 (폐기 불가)"
+    description: "long-lived root context (do not discard)"
 
   - id: memory_identity
     folder: memory/identity/
     lifecycle_phase: memory
-    description: "정체성 진화 기록"
+    description: "identity evolution record"
 
   - id: memory_vision
     folder: memory/visions/
     lifecycle_phase: memory
-    description: "비전 발언 (실행 강제 없음)"
+    description: "vision statement (no execution mandate)"
 
   - id: memory_operation
     folder: memory/operations/
     lifecycle_phase: memory
-    description: "운영 메모, 비용 보고 등"
+    description: "operational memo / cost report / runtime note"
 
   - id: protocol_canon
     folder: protocol/canon/
     lifecycle_phase: control
-    description: "헌법/규범. canon-change-gate 통과 후 변경 가능"
+    description: "governing rule. mutated only via a change-gate transition"
 
   - id: protocol_charter
     folder: protocol/charters/
     lifecycle_phase: control
-    description: "도메인 미션 계약"
+    description: "domain mission contract"
 
   - id: protocol_kernel
     folder: protocol/kernel/
     lifecycle_phase: control
-    description: "런타임/오케스트레이션 베이스"
+    description: "runtime / orchestration baseline"
 
   - id: protocol_grammar
     folder: protocol/grammar/
     lifecycle_phase: control
-    description: "Production Factory 문법군"
+    description: "production rule set"
 
   - id: protocol_schema
     folder: protocol/schema/
     lifecycle_phase: control
-    description: "데이터 envelope / validation 구조"
-
-  - id: protocol_codex
-    folder: protocol/codex/
-    lifecycle_phase: control
-    description: "Codex 운영 표면"
-
-  - id: protocol_compiler
-    folder: protocol/compiler/
-    lifecycle_phase: control
-    description: "Loom / Weave compiler lane"
-
-  - id: protocol_bridge
-    folder: protocol/bridges/
-    lifecycle_phase: control
-    description: "Bridge / Forge 어댑터 표면"
-
-  - id: protocol_domain
-    folder: protocol/domain/
-    lifecycle_phase: control
-    description: "Form / Fabric 도메인 명세"
+    description: "data envelope / validation structure"
 
   - id: template
     folder: templates/
     lifecycle_phase: control
-    description: "각 자산 타입의 작성 템플릿"
+    description: "writing template per artifact type"
 
   - id: registry_index
     folder: registry/
     lifecycle_phase: control
-    description: "cross-cutting 인덱스 / 매니페스트"
+    description: "cross-cutting index / manifest"
 
   - id: journey_entry
     folder: journey/
     lifecycle_phase: cross_cutting
-    description: "시간순 작업 일지"
+    description: "chronological work log"
 
   - id: archive_entry
     folder: archive/
     lifecycle_phase: terminal
-    description: "폐기/대체된 자산 (history 보존)"
+    description: "superseded / retired artifact (history preserved)"
 
   - id: automation_script
     folder: scripts/
     lifecycle_phase: automation
-    description: "spine을 강제하는 실행 스크립트 (validator / checker / builder)"
+    description: "executable script enforcing the spine"
 
   - id: package
     folder: packages/
     lifecycle_phase: automation
-    description: "내부 공용 TypeScript / 라이브러리 패키지"
+    description: "internal shared library package"
 
   - id: tool
     folder: tools/
     lifecycle_phase: automation
-    description: "보조 CLI / 개발자 유틸리티"
+    description: "developer CLI / utility"
 
   - id: ci_workflow
     folder: .github/
     lifecycle_phase: automation
-    description: "GitHub Actions workflow — scripts/ 호출로 spine 검증"
+    description: "CI workflow that invokes scripts to validate the spine"
 
   - id: dashboard_snapshot
     folder: dashboard/
     lifecycle_phase: snapshot
-    description: "scripts/dashboard/가 생성하는 read-only ops view"
+    description: "read-only operational view emitted by automation"
 
   - id: doc_plan
     folder: docs/
     lifecycle_phase: control
-    description: "구현 계획 / 검토 메모 / 운영 가이드 (canon 권위 없음)"
-
-# 다른 폴더에서 이 스키마 적용 시 최소 frontmatter:
-# ---
-# id: <ARTIFACT-ID>
-# type: <type-id>
-# layer: L<n>
-# lifecycle_state: <state>
-# parent: <id?>
-# gate: <gate-id?>
-# ---
+    description: "implementation plan / review note / operating guide"

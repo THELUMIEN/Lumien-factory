@@ -1,70 +1,63 @@
 # Lumien-factory
 
-LUMIEN 통합 시스템의 **운영 spine** (public-safe).
+A generic artifact lifecycle validator. Given a four-file YAML bundle (schema + spine + binding + manifest), the factory verifies that artifacts conform to the declared rules.
 
-이 리포는 `THELUMIEN/Lumien_private`에 정의된 통합 spine을 입력으로 받아
-라이프사이클 검증·승격을 자동화한다. **컨텐츠는 보관하지 않는다** —
-오직 매니페스트 계약과 검증 로직만 보유.
+## What it validates
 
-## 경계
+1. **schema conformance** — required fields present, known types and authorities
+2. **lifecycle state** — state belongs to the type's allowed sequence
+3. **folder binding** — path matches a folder that accepts the artifact type
+4. **transitions** — `parent.type` → `child.type` is allowed by the spine
+5. **backflow** — folder-to-folder direction is not forbidden
+6. **lineage** — parent / children references resolve and agree
+7. **id uniqueness** — no duplicate ids in the manifest
 
-```
-Lumien_private  ──[artifact-manifest.yaml (공개 안전)]──▶  Lumien-factory
-   (컨텐츠 + 매니페스트)                                       (검증 / 승격 자동화)
+## Spine inputs (in `contracts/`)
 
-   ◀─────────────[검증 결과 / Issue / PR comment]─────────────
-```
-
-- factory는 `Lumien_private`의 자산 컨텐츠를 **읽지 않는다**.
-- factory가 입력으로 받는 것: `registry/unified/artifact-manifest.yaml` (공개 안전).
-- factory가 검증하는 것:
-  1. schema 적합성 — 필수 필드 존재
-  2. lifecycle_state 적합성 — 해당 type의 허용 state
-  3. transition 적합성 — parent → child가 spine에 정의된 허용 transition
-  4. backflow 금지 — 폴더 간 역행 의존
-  5. gate 통과 여부 — 요구되는 protocol gate
-
-## Spine 입력
-
-| 파일 (Lumien_private) | 의미 |
+| File | Role |
 |------|------|
-| `registry/unified/artifact-schema.yaml`   | 공통 스키마 |
-| `registry/unified/lifecycle-spine.yaml`   | phase / state / transition / gate |
-| `registry/unified/folder-binding.yaml`    | 폴더 매핑 / 역행 금지 |
-| `registry/unified/artifact-manifest.yaml` | 자산 등록 |
+| `artifact-schema.yaml`   | shared schema for all artifact types |
+| `lifecycle-spine.yaml`   | phases, states, transitions, gates |
+| `folder-binding.yaml`    | folder ↔ phase mapping, backflow guards |
+| `artifact-manifest.yaml` | the manifest under validation |
 
-이 4개 파일의 사본은 `contracts/`에 동기화 보관(원본 권위는 private 리포).
+The four files in `contracts/` are a **synthetic example**. To validate your own manifest, replace them or point the CLI at a different directory.
 
-## 실행
+## Run
 
 ```bash
 pnpm install
-pnpm factory validate ./contracts        # spine 4개 파일 + manifest 검증
-pnpm factory promote --dry-run <id>      # transition 시뮬레이션
-pnpm factory graph --out spine.dot       # lineage 그래프 추출
+pnpm factory validate ./contracts                # validate the bundle
+pnpm factory promote --id <ID> --to <state>      # simulate a state transition
+pnpm factory graph --out spine.dot               # extract the lineage as DOT
 ```
 
-## 디렉터리
+## Layout
 
 ```
 src/
-├── types.ts            — schema/spine TypeScript 타입
-├── manifest.ts         — manifest YAML 로더
-├── lifecycle.ts        — state / transition / gate 검증 로직
-├── validate.ts         — 매니페스트 적합성 검증 (CLI 진입)
-├── promote.ts          — transition 시뮬레이션
-├── graph.ts            — lineage 그래프 추출
+├── types.ts            — schema / spine TypeScript types
+├── manifest.ts         — YAML loader
+├── lifecycle.ts        — state / transition / gate / backflow checks
+├── validate.ts         — manifest validator (CLI entry)
+├── promote.ts          — state transition simulator
+├── graph.ts            — Graphviz DOT lineage extractor
 └── cli.ts              — CLI dispatch
-contracts/              — Lumien_private spine 4개 파일 동기화 사본
+contracts/              — synthetic example bundle
 .github/workflows/
-└── factory-validate.yml — PR / push 시 검증
+└── factory-validate.yml — PR / push validation
 docs/
-└── architecture.md      — 경계 / 동작 / 입출력
+└── architecture.md      — engine overview
 tests/
-└── lifecycle.test.ts    — 라이프사이클 검증 스모크
+└── lifecycle.test.ts    — smoke tests
 ```
 
-## 관련 (Lumien_private)
+## Non-roles
 
-- `protocol/canon/unified-system-architecture-v1.md` — spine canon
-- `registry/unified/README.md` — spine 디렉터리 가이드
+The factory does **not**:
+
+- read or write artifact content (it sees only the four YAML files)
+- mutate the manifest
+- automatically enact state transitions (`promote` is simulation only)
+
+It is a pure verifier. Promotion and content edits happen externally.

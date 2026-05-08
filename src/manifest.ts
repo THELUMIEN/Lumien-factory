@@ -22,7 +22,7 @@ function loadYaml<T>(path: string): T {
 
 /**
  * Loads the four spine files from a directory.
- * Expected layout (matching registry/unified/ in Lumien_private):
+ * Expected layout:
  *   <dir>/artifact-schema.yaml
  *   <dir>/lifecycle-spine.yaml
  *   <dir>/folder-binding.yaml
