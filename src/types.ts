@@ -1,6 +1,7 @@
-// LUMIEN unified system types.
-// Mirrors registry/unified/{artifact-schema,lifecycle-spine,folder-binding}.yaml
-// in the Lumien_private repo.
+// Artifact lifecycle types.
+// These mirror the four-file YAML bundle:
+//   artifact-schema.yaml, lifecycle-spine.yaml, folder-binding.yaml,
+//   artifact-manifest.yaml.
 
 export type AuthorityLevel =
   | "canon"
@@ -27,14 +28,16 @@ export type ArtifactType =
   | "protocol_kernel"
   | "protocol_grammar"
   | "protocol_schema"
-  | "protocol_codex"
-  | "protocol_compiler"
-  | "protocol_bridge"
-  | "protocol_domain"
   | "template"
   | "registry_index"
   | "journey_entry"
-  | "archive_entry";
+  | "archive_entry"
+  | "automation_script"
+  | "package"
+  | "tool"
+  | "ci_workflow"
+  | "dashboard_snapshot"
+  | "doc_plan";
 
 export type LifecyclePhase =
   | "input"
@@ -46,7 +49,9 @@ export type LifecyclePhase =
   | "memory"
   | "control"
   | "cross_cutting"
-  | "terminal";
+  | "terminal"
+  | "automation"
+  | "snapshot";
 
 export type Verification = "passed" | "warn" | "failed" | "pending";
 

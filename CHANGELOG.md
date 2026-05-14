@@ -1,8 +1,8 @@
 # Changelog
 
-## [0.1.0] — 2026-05-05
+## [0.1.0]
 
-Initial scaffold: operational spine for the LUMIEN unified system.
+Initial scaffold: a generic artifact lifecycle validator.
 
 ### Added
 - spine YAML loader (`src/manifest.ts`)
@@ -12,16 +12,10 @@ Initial scaffold: operational spine for the LUMIEN unified system.
 - promotion simulator (`src/promote.ts`)
 - lineage Graphviz DOT extractor (`src/graph.ts`)
 - CLI dispatch (`src/cli.ts`)
-- public-safe sync mirror of `Lumien_private:registry/unified/*` under `contracts/`
+- synthetic example bundle in `contracts/`
 - `factory-validate` GitHub Actions workflow
-- node:test smoke tests (4 cases)
-- architecture doc
+- node:test smoke tests
 
 ### Validation baseline
 
-Seed manifest: 41 artifacts, 0 errors, 0 warnings.
-
-### Boundary
-
-Factory does not read Lumien_private content — only the public-safe manifest.
-See `docs/architecture.md` for the boundary diagram.
+The synthetic example bundle validates with 0 errors and 0 warnings.
